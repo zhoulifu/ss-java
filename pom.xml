@@ -12,6 +12,8 @@
     <properties>
         <java.version>1.7</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <netty.version>4.0.44.Final</netty.version>
+        <slf4j.version>1.7.22</slf4j.version>
     </properties>
 
     <dependencies>
@@ -24,14 +26,26 @@
 
         <dependency>
             <groupId>io.netty</groupId>
-            <artifactId>netty-all</artifactId>
-            <version>4.0.44.Final</version>
+            <artifactId>netty-codec-socks</artifactId>
+            <version>${netty.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.22</version>
+            <version>${slf4j.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+            <version>1.52</version>
         </dependency>
     </dependencies>
 
@@ -46,6 +60,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>libs/</classpathPrefix>
+                            <Main-Class>pers.zlf.sslocal.Main</Main-Class>
                         </manifest>
                     </archive>
                 </configuration>
@@ -67,7 +82,8 @@
                 <artifactId>maven-dependency-plugin</artifactId>
                 <version>3.0.0</version>
                 <configuration>
-                    <outputDirectory>${project.build.directory}/classes/libs</outputDirectory>
+                    <outputDirectory>${project.build.directory}/libs
+                    </outputDirectory>
                     <includeScope>runtime</includeScope>
                 </configuration>
                 <executions>

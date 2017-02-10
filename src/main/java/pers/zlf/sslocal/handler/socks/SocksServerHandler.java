@@ -15,6 +15,9 @@
  */
 package pers.zlf.sslocal.handler.socks;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -26,10 +29,12 @@ import io.netty.handler.codec.socks.SocksCmdRequestDecoder;
 import io.netty.handler.codec.socks.SocksCmdType;
 import io.netty.handler.codec.socks.SocksInitResponse;
 import io.netty.handler.codec.socks.SocksRequest;
+import pers.zlf.sslocal.handler.shadowsocks.ShadowsocksServerConnectHandler;
 import pers.zlf.sslocal.utils.ChannelUtils;
 
 @ChannelHandler.Sharable
 public final class SocksServerHandler extends SimpleChannelInboundHandler<SocksRequest> {
+    private Logger logger = LoggerFactory.getLogger(SocksServerHandler.class);
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx,
@@ -47,7 +52,7 @@ public final class SocksServerHandler extends SimpleChannelInboundHandler<SocksR
             case CMD:
                 SocksCmdRequest req = (SocksCmdRequest) socksRequest;
                 if (req.cmdType() == SocksCmdType.CONNECT) {
-                    ctx.pipeline().addLast(new SocksServerConnectHandler());
+                    ctx.pipeline().addLast(new ShadowsocksServerConnectHandler());
                     ctx.pipeline().remove(this);
                     ctx.fireChannelRead(socksRequest);
                 } else {
@@ -67,7 +72,7 @@ public final class SocksServerHandler extends SimpleChannelInboundHandler<SocksR
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable throwable) {
-        throwable.printStackTrace();
+        logger.error("Exception caught on channel {}", ctx.channel(), throwable);
         ChannelUtils.closeOnFlush(ctx.channel());
     }
 }

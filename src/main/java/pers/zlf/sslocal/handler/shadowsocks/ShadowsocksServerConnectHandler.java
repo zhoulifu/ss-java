@@ -13,7 +13,10 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package pers.zlf.sslocal.handler.socks;
+package pers.zlf.sslocal.handler.shadowsocks;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -30,17 +33,22 @@ import io.netty.handler.codec.socks.SocksCmdStatus;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.Promise;
+import pers.zlf.sslocal.Option;
+import pers.zlf.sslocal.ShadowsocksClient;
+import pers.zlf.sslocal.crypto.CryptoFactory;
 import pers.zlf.sslocal.handler.DirectClientHandler;
 import pers.zlf.sslocal.handler.RelayHandler;
 import pers.zlf.sslocal.utils.ChannelUtils;
 
 @ChannelHandler.Sharable
-public final class SocksServerConnectHandler extends SimpleChannelInboundHandler<SocksCmdRequest> {
+public final class ShadowsocksServerConnectHandler extends SimpleChannelInboundHandler<SocksCmdRequest> {
+    private Logger logger = LoggerFactory.getLogger(ShadowsocksServerConnectHandler.class);
 
     private final Bootstrap b = new Bootstrap();
 
     @Override
     public void channelRead0(final ChannelHandlerContext ctx, final SocksCmdRequest request) throws Exception {
+        final Option option = ShadowsocksClient.getShadowsocksOption(ctx.channel());
         Promise<Channel> promise = ctx.executor().newPromise();
         promise.addListener(
             new GenericFutureListener<Future<Channel>>() {
@@ -52,9 +60,13 @@ public final class SocksServerConnectHandler extends SimpleChannelInboundHandler
                             .addListener(new ChannelFutureListener() {
                                 @Override
                                 public void operationComplete(ChannelFuture channelFuture) {
-                                    ctx.pipeline().remove(SocksServerConnectHandler.this);
-                                    outboundChannel.pipeline().addLast(new RelayHandler(ctx.channel()));
+                                    ctx.pipeline().remove(ShadowsocksServerConnectHandler.this);
+                                    outboundChannel.pipeline().addLast(
+                                            new ShadowsocksMessageCodec(CryptoFactory.createCrypto(option.getMethod(), option.getPassword())),
+                                            new RelayHandler(ctx.channel()));
                                     ctx.pipeline().addLast(new RelayHandler(outboundChannel));
+
+                                    outboundChannel.writeAndFlush(request);
                                 }
                             });
                 } else {
@@ -71,13 +83,18 @@ public final class SocksServerConnectHandler extends SimpleChannelInboundHandler
                 .option(ChannelOption.SO_KEEPALIVE, true)
                 .handler(new DirectClientHandler(promise));
 
-        b.connect(request.host(), request.port()).addListener(new ChannelFutureListener() {
+        b.connect(option.getRemoteHost(), option.getRemotePort())
+         .addListener(new ChannelFutureListener() {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
                 if (future.isSuccess()) {
                     // Connection established use handler provided results
                 } else {
                     // Close the connection if the connection attempt has failed.
+                    if (logger.isErrorEnabled()) {
+                        logger.error("Failed to connect shadowsocks server", future.cause());
+                    }
+
                     ctx.channel().writeAndFlush(
                             new SocksCmdResponse(SocksCmdStatus.FAILURE, request.addressType()));
                     ChannelUtils.closeOnFlush(ctx.channel());

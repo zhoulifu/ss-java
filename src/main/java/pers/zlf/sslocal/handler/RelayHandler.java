@@ -15,6 +15,9 @@
  */
 package pers.zlf.sslocal.handler;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -23,7 +26,7 @@ import io.netty.util.ReferenceCountUtil;
 import pers.zlf.sslocal.utils.ChannelUtils;
 
 public final class RelayHandler extends ChannelInboundHandlerAdapter {
-
+    private Logger logger = LoggerFactory.getLogger(RelayHandler.class);
     private final Channel relayChannel;
 
     public RelayHandler(Channel relayChannel) {
@@ -53,7 +56,7 @@ public final class RelayHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        cause.printStackTrace();
-        ctx.close();
+        logger.error("Exception caught on channel {}", ctx.channel(), cause);
+        ChannelUtils.closeOnFlush(ctx.channel());
     }
 }
