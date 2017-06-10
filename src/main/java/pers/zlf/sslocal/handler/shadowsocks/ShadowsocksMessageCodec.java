@@ -30,26 +30,14 @@ public class ShadowsocksMessageCodec extends ByteToMessageCodec<ByteBuf>{
     @Override
     protected void encode(ChannelHandlerContext ctx, ByteBuf msg,
             ByteBuf out) throws Exception {
-        if (!ivSent) {
-            // See https://shadowsocks.org/en/spec/protocol.html
-            out.writeBytes(crypto.getEncryptIv());
-            ivSent = true;
-        }
-
-        out.writeBytes(crypto.encrypt(getData(msg)));
+        out.writeBytes(crypto.encrypt(msg));
     }
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in,
             List<Object> out) throws Exception {
         ByteBuf buf = ctx.alloc().buffer();
-        buf.writeBytes(crypto.decrypt(getData(in)));
+        buf.writeBytes(crypto.decrypt(in));
         out.add(buf);
-    }
-
-    private byte[] getData(ByteBuf buf) {
-        byte[] data = new byte[buf.readableBytes()];
-        buf.readBytes(data);
-        return data;
     }
 }

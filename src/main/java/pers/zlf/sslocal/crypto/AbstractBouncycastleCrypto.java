@@ -3,6 +3,9 @@ package pers.zlf.sslocal.crypto;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.StreamCipher;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufProcessor;
+
 public abstract class AbstractBouncycastleCrypto extends AbstractCrypto<StreamCipher> {
 
     public AbstractBouncycastleCrypto(String method, String password) {
@@ -21,6 +24,20 @@ public abstract class AbstractBouncycastleCrypto extends AbstractCrypto<StreamCi
         byte[] result = new byte[data.length];
         cipher.processBytes(data, 0, data.length, result, 0);
         return result;
+    }
+
+    @Override
+    protected ByteBuf process(final StreamCipher cipher, ByteBuf data) {
+        final ByteBuf slice = data.slice();
+        slice.writerIndex(0);
+        data.forEachByte(data.readerIndex(), data.readableBytes(), new ByteBufProcessor() {
+            @Override
+            public boolean process(byte b) throws Exception {
+                slice.writeByte(cipher.returnByte(b));
+                return true;
+            }
+        });
+        return data;
     }
 
     protected abstract StreamCipher getCipher();
