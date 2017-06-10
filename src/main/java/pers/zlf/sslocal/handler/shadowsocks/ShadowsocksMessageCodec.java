@@ -1,17 +1,15 @@
 package pers.zlf.sslocal.handler.shadowsocks;
 
-import java.util.List;
-
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
-import io.netty.handler.codec.ByteToMessageCodec;
+import io.netty.channel.ChannelPromise;
 import pers.zlf.sslocal.crypto.Crypto;
 
-public class ShadowsocksMessageCodec extends ByteToMessageCodec<ByteBuf>{
+public class ShadowsocksMessageCodec extends ChannelDuplexHandler{
 
     private Crypto crypto;
-    private boolean ivSent;
 
     public ShadowsocksMessageCodec(Crypto crypto) {
         this.crypto = crypto;
@@ -28,16 +26,14 @@ public class ShadowsocksMessageCodec extends ByteToMessageCodec<ByteBuf>{
     }
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, ByteBuf msg,
-            ByteBuf out) throws Exception {
-        out.writeBytes(crypto.encrypt(msg));
+    public void write(ChannelHandlerContext ctx, Object msg,
+            ChannelPromise promise) throws Exception {
+        ctx.write(crypto.encrypt((ByteBuf) msg), promise);
     }
 
     @Override
-    protected void decode(ChannelHandlerContext ctx, ByteBuf in,
-            List<Object> out) throws Exception {
-        ByteBuf buf = ctx.alloc().buffer();
-        buf.writeBytes(crypto.decrypt(in));
-        out.add(buf);
+    public void channelRead(ChannelHandlerContext ctx,
+            Object msg) throws Exception {
+        ctx.fireChannelRead(crypto.decrypt((ByteBuf) msg));
     }
 }

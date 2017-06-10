@@ -20,13 +20,6 @@ public abstract class AbstractBouncycastleCrypto extends AbstractCrypto<StreamCi
     }
 
     @Override
-    protected byte[] process(StreamCipher cipher, byte[] data) {
-        byte[] result = new byte[data.length];
-        cipher.processBytes(data, 0, data.length, result, 0);
-        return result;
-    }
-
-    @Override
     protected ByteBuf process(final StreamCipher cipher, ByteBuf data) {
         final ByteBuf slice = data.slice();
         slice.writerIndex(0);
