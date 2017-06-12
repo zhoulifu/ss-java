@@ -3,12 +3,9 @@ package pers.zlf.sslocal.crypto.impl;
 import java.util.Arrays;
 import java.util.List;
 
-import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.StreamCipher;
 import org.bouncycastle.crypto.engines.CamelliaEngine;
 import org.bouncycastle.crypto.modes.CFBBlockCipher;
-import org.bouncycastle.crypto.params.KeyParameter;
-import org.bouncycastle.crypto.params.ParametersWithIV;
 
 import pers.zlf.sslocal.crypto.AbstractBouncycastleCrypto;
 
@@ -29,11 +26,6 @@ public class CamelliaCrypto extends AbstractBouncycastleCrypto {
     @Override
     protected StreamCipher getCipher() {
         return new CFBBlockCipher(new CamelliaEngine(), 128);
-    }
-
-    @Override
-    protected CipherParameters getCipherParameter(byte[] iv) {
-        return new ParametersWithIV(new KeyParameter(getSecretKey().getEncoded()), iv);
     }
 
     @Override

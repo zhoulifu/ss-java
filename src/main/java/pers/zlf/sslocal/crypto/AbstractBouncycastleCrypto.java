@@ -2,6 +2,8 @@ package pers.zlf.sslocal.crypto;
 
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.StreamCipher;
+import org.bouncycastle.crypto.params.KeyParameter;
+import org.bouncycastle.crypto.params.ParametersWithIV;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufProcessor;
@@ -35,5 +37,7 @@ public abstract class AbstractBouncycastleCrypto extends AbstractCrypto<StreamCi
 
     protected abstract StreamCipher getCipher();
 
-    protected abstract CipherParameters getCipherParameter(byte[] iv);
+    protected CipherParameters getCipherParameter(byte[] iv) {
+        return new ParametersWithIV(new KeyParameter(getSecretKey().getEncoded()), iv);
+    }
 }

@@ -3,12 +3,9 @@ package pers.zlf.sslocal.crypto.impl;
 import java.util.Arrays;
 import java.util.List;
 
-import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.StreamCipher;
 import org.bouncycastle.crypto.engines.ChaChaEngine;
 import org.bouncycastle.crypto.engines.Salsa20Engine;
-import org.bouncycastle.crypto.params.KeyParameter;
-import org.bouncycastle.crypto.params.ParametersWithIV;
 
 import pers.zlf.sslocal.crypto.AbstractBouncycastleCrypto;
 
@@ -35,11 +32,6 @@ public class SodiumCrypto extends AbstractBouncycastleCrypto {
             default:
                 throw new IllegalArgumentException(method);
         }
-    }
-
-    @Override
-    protected CipherParameters getCipherParameter(byte[] iv) {
-        return new ParametersWithIV(new KeyParameter(getSecretKey().getEncoded()), iv);
     }
 
     @Override
