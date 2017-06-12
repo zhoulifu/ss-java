@@ -20,7 +20,7 @@ public class ShadowsocksKeyStore {
             return key;
         }
 
-        byte[] onlyKey = EncryptUtils.EVPBytesToKey(password, keyLen, 0);
+        byte[] onlyKey = EncryptUtils.EVPBytesToKey(password, keyLen);
         key = new SecretKeySpec(onlyKey, algo);
         CACHE.putIfAbsent(cacheKey, key);
 
