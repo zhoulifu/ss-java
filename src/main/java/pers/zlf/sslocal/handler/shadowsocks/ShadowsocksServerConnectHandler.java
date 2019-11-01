@@ -35,7 +35,8 @@ import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.Promise;
 import pers.zlf.sslocal.Option;
 import pers.zlf.sslocal.ShadowsocksClient;
-import pers.zlf.sslocal.crypto.CryptoFactory;
+import pers.zlf.sslocal.cipher.CipherFactory;
+import pers.zlf.sslocal.cipher.bouncycastle.BouncycastleCipherFactory;
 import pers.zlf.sslocal.handler.DirectClientHandler;
 import pers.zlf.sslocal.handler.RelayHandler;
 import pers.zlf.sslocal.utils.ChannelUtils;
@@ -62,9 +63,11 @@ public final class ShadowsocksServerConnectHandler extends SimpleChannelInboundH
                                 public void operationComplete(ChannelFuture channelFuture) {
                                     ctx.pipeline().remove(ShadowsocksServerConnectHandler.this);
                                     outboundChannel.pipeline().addLast(
-                                            new ShadowsocksMessageCodec(CryptoFactory.createCrypto(option.getMethod(), option.getPassword())),
-                                            new RelayHandler(ctx.channel()));
-                                    ctx.pipeline().addLast(new RelayHandler(outboundChannel));
+                                            new ShadowsocksCryptHandler(new BouncycastleCipherFactory()),
+                                            new RelayHandler(ctx.channel()),
+                                            ShadowsocksRequestEncoder.INSTANCE);
+                                    ctx.pipeline()
+                                            .addLast(new RelayHandler(outboundChannel));
 
                                     outboundChannel.writeAndFlush(request);
                                 }
@@ -81,7 +84,8 @@ public final class ShadowsocksServerConnectHandler extends SimpleChannelInboundH
                 .channel(NioSocketChannel.class)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000)
                 .option(ChannelOption.SO_KEEPALIVE, true)
-                .handler(new DirectClientHandler(promise));
+                .handler(new DirectClientHandler(promise))
+                .attr(ShadowsocksClient.OPTION_ATTRIBUTE_KEY, option);
 
         b.connect(option.getRemoteHost(), option.getRemotePort())
          .addListener(new ChannelFutureListener() {

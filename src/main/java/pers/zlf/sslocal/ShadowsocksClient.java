@@ -15,7 +15,7 @@ import io.netty.util.concurrent.Future;
 import pers.zlf.sslocal.handler.socks.SocksServerInitializer;
 
 public class ShadowsocksClient {
-    private static final AttributeKey<Option> OPTION_ATTRIBUTE_KEY = AttributeKey.valueOf(
+    public static final AttributeKey<Option> OPTION_ATTRIBUTE_KEY = AttributeKey.valueOf(
             Option.class.getName());
 
     private Logger logger = LoggerFactory.getLogger(ShadowsocksClient.class);
